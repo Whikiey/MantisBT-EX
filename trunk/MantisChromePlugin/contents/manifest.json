@@ -1,0 +1,49 @@
+﻿{
+	"name": "Mantis 增强",
+	"version": "0.6.1",
+	"manifest_version": 2,
+	"description": "Mantis Bug Tracker Enhancement",
+	"icons": {
+		"16":"res/mantis16.ico"
+	},
+	"content_scripts": [
+		{
+			"matches": ["*://*/*"],
+			"js": [
+				"js/jquery.js",
+				"js/jquery-ui.js",
+				"js/utils.js",
+				"js/MantisPage.js",
+				"js/MantisAjax.js",
+				"js/content.js"
+			],
+			"css": [
+				"css/jquery-ui.css",
+				"css/content.css"
+			]
+		}
+	],
+	"permissions": [
+		"tabs",
+		"notifications",
+		"storage",
+		"background",
+		"webNavigation",
+		"*://*/*"
+	],
+	"web_accessible_resources": [
+		"images/*.png",
+		"images/*.gif"
+	],
+	"page_action": {
+		"default_icon": {
+		"19": "res/icon19.png",
+		"38": "res/icon38.png"
+		},
+		"default_title": "Mantis Bug Tracker Enhancement",
+		"default_popup": "popup.html"
+	},
+	"background": {
+		"page": "background.html"
+	}
+}

@@ -1,0 +1,26 @@
+﻿
+.wk_mantis_date_text {
+	height: 24px;
+	border-width: 0;
+	width: 0;
+	padding: 0;
+}
+
+.wk_mantis_date_pick, .wk_mantis_date_plugin {
+	height: 24px;
+}
+
+.ui-datepicker select.ui-datepicker-year, .ui-datepicker select.ui-datepicker-month {
+	font-size: 14px;
+	font-family: 'Microsoft YaHei';
+	font-weight: bold !important;
+	color: #1C94C4;
+}
+
+.ui-datepicker select.ui-datepicker-year {
+	width: 64px;
+}
+
+.ui-datepicker select.ui-datepicker-month {
+	width: 70px;
+}
