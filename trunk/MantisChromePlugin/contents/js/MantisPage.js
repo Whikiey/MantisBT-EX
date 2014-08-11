@@ -156,7 +156,7 @@
 			return jParents[0];
 		},
 		isClosed: function (tr) {
-			return tr.css("background-color") == "#c9ccc4";
+			return $(tr).attr("bgColor") == "#c9ccc4";
 		},
 		highlightLastUpdated: function () {
 			var td = this.get_column_header_in_list_view("last_updated");
