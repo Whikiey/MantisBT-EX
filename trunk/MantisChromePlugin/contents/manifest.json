@@ -1,6 +1,6 @@
 ﻿{
 	"name": "Mantis 增强",
-	"version": "0.6.3",
+	"version": "0.6.4",
 	"manifest_version": 2,
 	"description": "Mantis Bug Tracker Enhancement",
 	"icons": {
@@ -10,21 +10,15 @@
 		{
 			"matches": ["*://*/*"],
 			"js": [
-				"js/jquery.js",
-				"js/jquery-ui.js",
-				"js/utils.js",
-				"js/MantisPage.js",
-				"js/MantisAjax.js",
 				"js/content.js"
 			],
 			"css": [
-				"css/jquery-ui.css",
-				"css/content.css"
 			]
 		}
 	],
 	"permissions": [
 		"tabs",
+		"activeTab",
 		"notifications",
 		"storage",
 		"background",

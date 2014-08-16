@@ -23,6 +23,12 @@
 			dtp.day.value = "";
 		}
 	};
+	function getNextMondyDelta(){
+		var date = new Date();
+		date.setDate(date.getDate() - ((date.getDay() + 6) % 7 + 1) + 8);
+		//return date;
+		return (date.valueOf() - (new Date()).valueOf()) / (1000 * 3600 * 24);
+	}
 
 	var MantisPageClass = function () { };
 	MantisPageClass.prototype = {
@@ -52,16 +58,36 @@
 					month: $(this).next()[0],
 					day: $(this).next().next()[0]
 				};
+				$(dtp.year).hide();
+				$(dtp.month).hide();
+				$(dtp.day).hide();
 
 				var jLast = $(dtp.day);
 
-				var jInput = $("<input type=\"text\" class=\"wk_mantis_date_text\">");
+				var jInput = $("<input type=\"text\" style=\"height:24px; width: 0px; padding: 0; border-width: 0;\" class=\"wk_mantis_date_text\" readonly>");
 				jLast.after(jInput);
 				jLast = jInput;
+				dtp.input = jInput[0];
 
-				var jBtn = $("<button type=\"button\" class=\"wk_mantis_date_pick\">" + "▼" + "</button>");
-				jLast.after(jBtn);
-				jLast = jBtn;
+				function syncDateToInput() {
+					var dateExp = dtp.year.value + "-" + dtp.month.value + "-" + dtp.day.value;
+					if (/^\d{4}\-\d{1,2}-\d{1,2}$/g.test(dateExp)) {
+						var date = new Date(dateExp);
+						if (isNaN(date.getFullYear()))
+							date = new Date();
+					}
+					else {
+						jDropBtn.text(dropDownText);
+						jInput.val("");
+						return;
+					}
+					dateExp = utils.paddingLeft(date.getFullYear().toString(), 4, "0")
+						+ "-" + utils.paddingLeft((date.getMonth() + 1).toString(), 2, "0")
+						+ "-" + utils.paddingLeft(date.getDate().toString(), 2, "0");
+					jInput.val(dateExp);
+					jDropBtn.text(dateExp + " " + dropDownText);
+					$(this).datepicker("setDate", dateExp);
+				}
 				jInput.datepicker({
 					dateFormat: "yy-mm-dd",
 					changeYear: true,
@@ -70,21 +96,7 @@
 					showMonthAfterYear: true,
 					showOtherMonths: true,
 					showButtonPanel: true,
-					beforeShow: function () {
-						var dateExp = dtp.year.value + "-" + dtp.month.value + "-" + dtp.day.value;
-						if (/^\d{4}\-\d{1,2}-\d{1,2}$/g.test(dateExp)) {
-							var date = new Date(dateExp);
-							if (isNaN(date.getFullYear()))
-								date = new Date();
-						}
-						else
-							date = new Date();
-						dateExp = utils.paddingLeft(date.getFullYear().toString(), 4, "0")
-							+ "-" + utils.paddingLeft((date.getMonth() + 1).toString(), 2, "0")
-							+ "-" + utils.paddingLeft(date.getDate().toString(), 2, "0");
-						jInput.val(dateExp);
-						$(this).datepicker("setDate", dateExp);
-					},
+					beforeShow: syncDateToInput,
 					onSelect: function () {
 						var nums = this.value.split("-");
 						if (nums.length == 3) {
@@ -94,15 +106,21 @@
 								day: parseInt(nums[2]),
 							};
 							fillDtp(dtp, date);
+							syncDateToInput();
 						}
 					}
 				});
 				function showDatePicker() {
 					jInput.datepicker("show");
 				};
+				var dropDownText = "▼";
+				var jBtn = $("<button type=\"button\" style=\"text-align: right; width: 108px; white-space: nowrap;\" class=\"wk_mantis_date_pick\" ></button>");
+				var jDropBtn = jBtn;
+				jLast.after(jBtn);
+				jLast = jBtn;
 				jBtn.click(showDatePicker);
-
-				var buttons = { "今": 0, "明": 1, "后": 2, "清空": null };
+				
+				var buttons = { "今": 0, "明": 1, "后": 2, "下周一": getNextMondyDelta(), "清空": null };
 				for (btn in buttons) {
 					var jBtn = $("<button type=\"button\" class=\"wk_mantis_date_plugin\">" + btn + "</button>");
 					var elBtn = jBtn[0];
@@ -112,8 +130,11 @@
 					jLast = jBtn;
 				}
 
+				syncDateToInput();
+
 				$(".wk_mantis_date_plugin").click(function () {
 					fillDtp(this.dtp, (this.delta != null) ? getDate(this.delta) : null);
+					syncDateToInput();
 					return false;
 				});
 			});
