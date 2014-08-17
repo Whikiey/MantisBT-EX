@@ -23,7 +23,7 @@
 			dtp.day.value = "";
 		}
 	};
-	function getNextMondyDelta(){
+	function getNextMondyDelta() {
 		var date = new Date();
 		date.setDate(date.getDate() - ((date.getDay() + 6) % 7 + 1) + 8);
 		//return date;
@@ -38,7 +38,7 @@
 		init: function () {
 			if (!this.detect())
 				return false;
-			
+
 			this.addDatePickerFeature();
 			if (this.isGroupActionPage()) {
 				this.addCommentFeatureToGroupActionPage();
@@ -119,7 +119,7 @@
 				jLast.after(jBtn);
 				jLast = jBtn;
 				jBtn.click(showDatePicker);
-				
+
 				var buttons = { "今": 0, "明": 1, "后": 2, "下周一": getNextMondyDelta(), "清空": null };
 				for (btn in buttons) {
 					var jBtn = $("<button type=\"button\" class=\"wk_mantis_date_plugin\">" + btn + "</button>");
@@ -197,6 +197,7 @@
 				var text = $(this.cells[td.cellIndex]).text();
 				var dtUpdate = new Date(text);
 				var deltaMs = now - dtUpdate;
+				this.deltaMs = (deltaMs / msPerDay).toFixed(1).toString() + "天未更新";
 				if (deltaMs > alarmMs) {
 					alarmItems.push(this);
 					return;
@@ -207,13 +208,22 @@
 				}
 			});
 			if (alarmItems.length + warnItems.length > 0) {
-				$(td).css("background", "#f00");
-				$.each(alarmItems, function () {
-					$(this.cells[td.cellIndex]).css("background", "#f00");
-				});
-				$.each(warnItems, function () {
-					$(this.cells[td.cellIndex]).css("background", "#ff0");
-				});
+				var summary = "本页统计：";
+				var titleBgColor = "#ff0";
+				if (alarmItems.length > 0) {
+					titleBgColor = "#f00"
+					summary += "\r\n" + alarmItems.length + "条问题超过7天未更新";
+					$.each(alarmItems, function () {
+						$(this.cells[td.cellIndex]).css("background", "#f00").attr("title", this.deltaMs);
+					});
+				}
+				if (warnItems.length > 0) {
+					summary += "\r\n" + warnItems.length + "条问题5-7天未更新";
+					$.each(warnItems, function () {
+						$(this.cells[td.cellIndex]).css("background", "#ff0").attr("title", this.deltaMs);
+					});
+				}
+				$(td).css("background", titleBgColor).attr("title", summary);
 			}
 		}
 

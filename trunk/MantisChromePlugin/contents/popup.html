@@ -2,11 +2,31 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link href="css/popup.css" rel="stylesheet" type="text/css">
 	<title></title>
+	<script src="js/jquery.js"></script>
 </head>
 <body>
 	<div id="msg"><b>Mantis 插件正在运行</b></div>
 	<div style="white-space: nowrap;">我的任务功能即将推出，敬请期待</div>
+	<div class="version-history" style="display: none;">
+		<div>版本修订历史</div>
+		<ul>
+			<li><div class="version">0.6.5</div>
+				<ol>
+					<li style="white-space: nowrap;">改进：最后更新日期如果只有5-6天，没有超过7天的情况下，标题显示为黄色</li>
+					<li style="white-space: nowrap;">改进：最后更新日期标题增加摘要提示，条目上增加超过天数提示（1位小数）</li>
+				</ol>
+			</li>
+			<li>
+				<div class="version">0.6.4</div>
+				<ol>
+					<li style="white-space: nowrap;">修复：与百度音乐播放器的冲突</li>
+					<li style="white-space: nowrap;">改进：日期下拉按钮上显示日期</li>
+				</ol>
+			</li>
+		</ul>
+	</div>
 	<script src="js/popup.js"></script>
 </body>
 </html>
