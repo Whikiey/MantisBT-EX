@@ -43,7 +43,9 @@
 			if (this.isGroupActionPage()) {
 				this.addCommentFeatureToGroupActionPage();
 			}
-			this.highlightLastUpdated();
+			if (this.isListPage()) {
+				this.highlightLastUpdated();
+			}
 			return true;
 		},
 		addDatePickerFeature: function () {
@@ -143,6 +145,9 @@
 		isGroupActionPage: function () {
 			return window.location.pathname.toLowerCase() == MantisAjax.get_rel_url().toLowerCase() + "/bug_actiongroup_page.php";
 		},
+		isListPage: function () {
+			return window.location.pathname.toLowerCase() == MantisAjax.get_rel_url().toLowerCase() + "/view_all_bug_page.php";
+		},
 		addCommentFeatureToGroupActionPage: function () {
 			var jForm = null;
 			$("form").each(function () {
@@ -181,7 +186,8 @@
 		},
 		highlightLastUpdated: function () {
 			var td = this.get_column_header_in_list_view("last_updated");
-			var dataRows = $(td).parents("TABLE").first().find("tr").filter(function () { return this.cells.length > 1 && (this.className == null || this.className == ""); });
+			var jTable = $(td).parents("TABLE").first();
+			var dataRows = jTable.find("tr").filter(function () { return this.cells.length > 1 && (this.className == null || this.className == ""); });
 			var now = new Date();
 			var msPerDay = 1000 * 60 * 60 * 24;
 			var warnDays = 5;
@@ -218,15 +224,42 @@
 					});
 				}
 				if (warnItems.length > 0) {
-					summary += "\r\n" + warnItems.length + "条问题5-7天未更新";
+					summary += "\r\n" + warnItems.length + "条问题5-6天未更新";
 					$.each(warnItems, function () {
 						$(this.cells[td.cellIndex]).css("background", "#ff0").attr("title", this.deltaMs);
 					});
 				}
 				$(td).css("background", titleBgColor).attr("title", summary);
 			}
+			if ($("#select7DaysMore").length == 0) {
+				var checkRow = this.checkRow;
+				var select7DaysMore = $("<a href='#' id='select7DaysMore' style='margin-left: 4px; margin-right: 4px;'>超过7天未更新</a>").click(function () {
+					$.each(alarmItems, function () {
+						checkRow(this);
+					});
+					return false;
+				});
+				var select5DaysMore = $("<a href='#' id='select5DaysMore' style='margin-left: 4px; margin-right: 4px;'>超过5天未更新</a>").click(function () {
+					$.each(alarmItems, function () {
+						checkRow(this);
+					});
+					$.each(warnItems, function () {
+						checkRow(this);
+					});
+					return false;
+				});
+				var selectNone = $("<a href='#' id='selectNone' style='margin-left: 4px; margin-right: 4px;'>全不选</a>").click(function () {
+					jTable.find("input[type=checkbox]").prop("checked", false);
+					return false;
+				});
+				jTable.find("select[name=action]").before(select7DaysMore).before(select5DaysMore).before(selectNone);
+			}
+		},
+		checkRow: function (tr, checked) {
+			if (checked === undefined)
+				checked = true;
+			$(tr).find("td:first input[type=checkbox]").prop("checked", checked);
 		}
-
 	};
 	window.MantisPage = new MantisPageClass();
 })(window.jQuery);
