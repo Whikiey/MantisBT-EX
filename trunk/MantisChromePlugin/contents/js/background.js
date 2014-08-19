@@ -2,8 +2,6 @@
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	if (changeInfo.status == 'complete') {
 		chrome.tabs.sendMessage(tabId, { action: "mx_detect" }, function (isMantis) {
-			console.log("ISMANTIS:");
-			console.log(isMantis);
 			if (isMantis) {
 				chrome.pageAction.show(tabId);
 				var resFiles = [
@@ -27,7 +25,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 					}
 					var res = resFiles[0];
 					resFiles.splice(0, 1);
-					console.log(res);
 
 					for (var resFile in res) {
 						var type = res[resFile];
@@ -47,9 +44,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 					}
 				}
 				loadResFiles(resFiles, function () {
-					console.log("END Load RES");
 					chrome.tabs.sendMessage(tabId, { action: "mx_init" }, function () {
-						console.log(arguments);
 						return;
 					});
 				});

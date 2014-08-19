@@ -14,7 +14,6 @@
 	}
 	$(function () {
 		var settings = loadSettings();
-		console.log(settings.firstRun);
 		if (settings.firstRun === undefined || settings.firstRun) {
 			$(".version-history").show();
 			settings.firstRun = false;

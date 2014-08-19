@@ -1,0 +1,30 @@
+﻿
+.version-history
+{
+	font-size: 12px;
+	margin: 12px 0;
+}
+.version-history>div
+{
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.version-history ul{
+	font-size: 12px;
+	margin: 0;
+	padding: 0;
+	padding-left: 1em;
+	list-style: none;
+}
+	.version-history .version {
+		margin-top: 12px;
+		border-bottom: solid 1px #ccc;
+	}
+.version-history ol {
+	font-size: 12px;
+	margin: 0;
+	padding: 0;
+	padding-left: 2em;
+	list-style-position:inside;
+}
