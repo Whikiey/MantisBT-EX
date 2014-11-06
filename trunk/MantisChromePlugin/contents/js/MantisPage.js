@@ -38,14 +38,18 @@
 		init: function () {
 			if (!this.detect())
 				return false;
-
-			this.addDatePickerFeature();
-			if (this.isGroupActionPage()) {
+			if (this.isGroupActionExPage()) {
+				this.addActionExFeature();
+			}
+			else if (this.isGroupCommentPage()) { }
+			else if (this.isGroupActionPage()) {
 				this.addCommentFeatureToGroupActionPage();
 			}
 			if (this.isListPage()) {
 				this.highlightLastUpdated();
+				this.addBatchMonitorFeature();
 			}
+			this.addDatePickerFeature();
 			return true;
 		},
 		addDatePickerFeature: function () {
@@ -145,6 +149,16 @@
 		isGroupActionPage: function () {
 			return window.location.pathname.toLowerCase() == MantisAjax.get_rel_url().toLowerCase() + "/bug_actiongroup_page.php";
 		},
+		isGroupCommentPage: function () {
+			if (!this.isGroupActionPage())
+				return false;
+			return this.getQueryValue("action") == "EXT_ADD_NOTE";
+		},
+		isGroupActionExPage: function () {
+			if (!this.isGroupCommentPage())
+				return false;
+			return this.getQueryValue("actionex") != null;
+		},
 		isListPage: function () {
 			return window.location.pathname.toLowerCase() == MantisAjax.get_rel_url().toLowerCase() + "/view_all_bug_page.php";
 		},
@@ -170,6 +184,67 @@
 				});
 				var comment = $("#bugnote_text").val();
 				MantisAjax.batch_add_comment(bugids, comment);
+			});
+		},
+		addActionExFeature: function () {
+			var actionex = this.getQueryValue("actionex");
+			if (actionex == "ADD_MONITOR") {
+				var jForm = null;
+				$("form").each(function () {
+					if ($(this).attr("action") == "bug_actiongroup_ext.php") {
+						jForm = $(this);
+						return false;
+					}
+				});
+				if (jForm == null)
+					return;
+				jForm.find("tr.form-title td").text("添加监视");
+				jForm.find("tr td textarea[name=bugnote_text]").parents("tr").first().find("td:first").text("注释");
+				jForm.find("input[type=submit]").val("添加监视");
+				jForm.submit(function () {
+					var bugids = [];
+					jForm.find("input[name^=bug_arr]").each(function () {
+						bugids.push(this.value);
+					});
+					var comment = $("textarea[name=bugnote_text]").val();
+					try{
+						MantisAjax.batch_add_monitor(bugids);
+						window.open("view_all_bug_page.php", "_self");
+					}
+					catch (e){
+						console.log(e);
+					}
+					if (comment == "")
+						return false;
+				});
+			}
+		},
+		addBatchMonitorFeature: function () {
+			var jForm = null;
+			$("form").each(function () {
+				if ($(this).attr("action") == "bug_actiongroup_page.php") {
+					jForm = $(this);
+					return false;
+				}
+			});
+			if (jForm == null)
+				return;
+
+			jForm.find("select[name=action]").prepend("<option value=WK_EX_ADD_MONITOR>添加监视</option>");
+
+			jForm.submit(function () {
+				var jForm = $(this);
+				var action = jForm.find("select[name=action]").val();
+				if (action.indexOf("WK_EX_") >= 0) {
+					var actionex = action.substring("WK_EX_".length);
+					jForm.append("<input name=actionex value=" + actionex + " type=hidden />");
+					jForm.find("select[name=action]").val("EXT_ADD_NOTE");
+					var search = jForm.serialize();
+					jForm.find("input[name=actionex]").remove();
+					var path = jForm.attr("action");
+					window.open(path + "?" + search, "_self");
+					return false;
+				}
 			});
 		},
 		get_column_header_in_list_view: function (column) {
@@ -259,6 +334,40 @@
 			if (checked === undefined)
 				checked = true;
 			$(tr).find("td:first input[type=checkbox]").prop("checked", checked);
+		},
+		getQueryMap: function () {
+			if (!window._urlQueryMap) {
+				var queries = window.location.search.substring(1).split("&");
+				var queryMap = {};
+				for (var i = 0; i < queries.length; i++) {
+					var nv = queries[i].split("=");
+
+					var name = nv[0];
+					var val = null;
+					if (nv.length > 1)
+						val = nv[1];
+					if (!(name in queryMap))
+						queryMap[name] = [];
+					queryMap[name].push(val);
+				}
+				window._urlQueryMap = queryMap;
+			}
+			return window._urlQueryMap;
+		},
+		getQueryValue: function (name) {
+			var queryMap = this.getQueryMap();
+			if (name in queryMap)
+				return queryMap[name][0];
+			return null;
+		},
+		getQueryValues: function (name) {
+			var queryMap = this.getQueryMap();
+			var vals = [];
+			if (name in queryMap) {
+				for (var i = 0; i < queryMap[name].length; i++)
+					vals.push(queryMap[name][i]);
+			}
+			return vals;
 		}
 	};
 	window.MantisPage = new MantisPageClass();
