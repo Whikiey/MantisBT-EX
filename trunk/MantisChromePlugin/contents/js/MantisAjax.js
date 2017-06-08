@@ -59,6 +59,50 @@
 				});
 			});
 		},
+		batch_change_resolution: function(bugids, resolution) {
+			var dict = {};
+			var rel_url = this.get_rel_url();
+			for(var i = 0; i < bugids.length; i++) {
+				var bugid = bugids[i];
+				dict[bugid] = true;
+				this.batch_change_field(bugid, "resolution", resolution, function(bugid, result) {
+					delete dict[bugid];
+					var keyCount = Object.keys(dict).length;
+					console.log(keyCount);
+					if (keyCount == 0) {
+						window.location.href = rel_url + "view_all_bug_page.php";
+					}
+				});
+			}
+		},
+		batch_change_field: function(bugid, fieldName, value, callback) {
+			var rel_url = this.get_rel_url();
+			var url = rel_url + "bug_update_page.php?bug_id=" + bugid;
+			var iframe = document.createElement("IFRAME");
+			var css = iframe.style;
+			css.display = "none";
+			document.body.appendChild(iframe);
+			iframe.onload = function() {
+				var win = iframe.contentWindow;
+				if (win.location.pathname.indexOf("/bug_update_page.php") >= 0) {
+					var jInput = $(win.document.body).find("[name=" + fieldName + "]");
+					jInput.val(value);
+					var jForm = jInput.parents("form").first();
+					$.ajax({
+						url: jForm.attr("action"),
+						type: "POST",
+						async: true,
+						cache: false,
+						data: jForm.serialize()
+					}).done(function() {
+						callback(bugid, true);
+					}).error(function() {
+						callback(bugid, false);
+					});
+				}
+			};
+			iframe.src = url;
+		},
 		batch_add_monitor: function (bugids, comment) {
 			if (!this.validate_ids(bugids))
 				return;

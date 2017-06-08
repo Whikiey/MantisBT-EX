@@ -3,7 +3,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	if (changeInfo.status == 'complete') {
 		chrome.tabs.sendMessage(tabId, { action: "mx_detect" }, function (isMantis) {
 			if (isMantis) {
-				chrome.pageAction.show(tabId);
+				//chrome.pageAction.show(tabId);
 				var resFiles = [
 					{ "css/jquery-ui.css": "css" },
 					{ "css/content.css": "css" },

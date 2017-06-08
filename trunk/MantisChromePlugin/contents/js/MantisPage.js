@@ -32,24 +32,34 @@
 
 	var MantisPageClass = function () { };
 	MantisPageClass.prototype = {
-		detect: function () {
-			return $(document.body).html().indexOf("MantisBT") >= 0;
-		},
 		init: function () {
-			if (!this.detect())
-				return false;
 			if (this.isGroupActionExPage()) {
 				this.addActionExFeature();
 			}
 			else if (this.isGroupCommentPage()) { }
 			else if (this.isGroupActionPage()) {
 				this.addCommentFeatureToGroupActionPage();
+				if (this.getQueryValue("action") == "RESOLVE") {
+					this.addResolutionFeature();
+				}
 			}
 			if (this.isListPage()) {
 				this.highlightLastUpdated();
 				this.addBatchMonitorFeature();
 			}
+			if (this.isBugReportPage()) {
+				this.setDefaultAssignee(this.getUser().userName);
+				//this.setDefaultSeverity("10");
+				this.setDefaultDescription("RT");
+				this.setDefaultRelation("3"); // 父问题
+				this.addAdditionalSubmitReportButton();
+				this.minimizeTextareas();
+			}
+			if (this.isViewPage()) {
+				this.tweakViewButtonSet();
+			}
 			this.addDatePickerFeature();
+			this.minimizeHeader();
 			return true;
 		},
 		addDatePickerFeature: function () {
@@ -162,6 +172,12 @@
 		isListPage: function () {
 			return window.location.pathname.toLowerCase() == MantisAjax.get_rel_url().toLowerCase() + "/view_all_bug_page.php";
 		},
+		isBugReportPage: function() {
+			return window.location.pathname.toLowerCase() == MantisAjax.get_rel_url().toLowerCase() + "/bug_report_page.php";
+		},
+		isViewPage: function() {
+			return window.location.pathname.toLowerCase() == MantisAjax.get_rel_url().toLowerCase() + "/view.php";
+		},
 		addCommentFeatureToGroupActionPage: function () {
 			var jForm = null;
 			$("form").each(function () {
@@ -247,6 +263,28 @@
 				}
 			});
 		},
+		addResolutionFeature: function() {
+			var jForm = null;
+			$("form").each(function () {
+				if ($(this).attr("action") == "bug_actiongroup.php") {
+					jForm = $(this);
+					return false;
+				}
+			});
+			if (jForm == null)
+				return;
+			jForm.submit(function () {
+				var bugids = [];
+				jForm.find("input[name^=bug_arr]").each(function () {
+					bugids.push(this.value);
+				});
+				var resolution = jForm.find("[name=resolution]").val();
+				MantisAjax.batch_change_resolution(bugids, resolution);
+				console.log(window.location + "changing resolution");
+				return false;
+			});
+			console.log(window.location + "ResolutionFeature added");
+		},
 		get_column_header_in_list_view: function (column) {
 			var jA = $("#buglist tr.row-category").find("a[href]").filter(function (index) { return this.href.indexOf("view_all_set.php?sort=" + column) >= 0; });
 			if (jA == null)
@@ -330,10 +368,84 @@
 				jTable.find("select[name=action]").before(select7DaysMore).before(select5DaysMore).before(selectNone);
 			}
 		},
+		setDefaultAssignee: function (userName) {
+			$("select[name=handler_id]").each(function() {
+				var $sel = $(this);
+				var val = $sel.val();
+				if (val == null || $.trim(val) == "") {
+					$sel.find("option").each(function (i) {
+						var un = $.trim($(this).text());
+						if (un == userName) {
+							val = this.value;
+							return false;
+						}
+					});
+					$sel.val(val);
+				}
+			});
+		},
+		setDefaultDescription: function (description) {
+			var $description = $("[name=description]");
+			if ($.trim($description.val()) == "")
+				$description.val(description);
+		},
+		setDefaultRelation: function (relationValue) {
+			$("[name=rel_type]").val(relationValue);
+		},
+		addAdditionalSubmitReportButton: function () {
+			var $form = $("form[name=report_bug_form]");
+			var $btn = $form.find("[type=submit]").clone();
+			var $container = $form.find(".form-title").removeAttr("colspan").after("<td />").next();
+			$btn.appendTo($container)
+				.css("padding", "10px 20px")
+				.css("letter-spacing", "3px")
+				.css("font-size", "20px")
+				.css("font-weight", "bold")
+				.css("font-family", "Simhei")
+			;
+		},
+		minimizeTextareas: function () {
+			$("form[name=report_bug_form]").find("textarea[name]").each(function () {
+				this.rows = 1;
+				this.cols = 10;
+			});
+		},
+		minimizeHeader: function () {
+			$("body>div:first").hide();
+		},
+		tweakViewButtonSet: function () {
+			var $btnForms = $(".form-title").first().parents("table").first().children().children("tr:last").find("tr").first().find("form");
+			$btnForms.filter("[action^=bug_report_page]").find("[type=submit]").click(function() {
+				var $form = $(this).parents("form").first();
+				var action = $form.attr("action");
+				var mid = $form.find("[name=m_id]").val();
+				var url = action + "?m_id=" + mid;
+				window.open(url, "_blank");
+				return false;
+			});
+		},
 		checkRow: function (tr, checked) {
 			if (checked === undefined)
 				checked = true;
 			$(tr).find("td:first input[type=checkbox]").prop("checked", checked);
+		},
+		getUser: function() {
+			var user = {userName: null, name: null, roleName: null};
+			var $logPane = $(".login-info-left");
+			if ($logPane.length > 0) {
+				user.userName = $.trim($logPane.find(".italic").text());
+				var exp = $logPane.find(".small").text();
+				if (exp != null){
+					exp = $.trim(exp);
+					var re = /\(([^ ]+) \- ([^\)]+)\)/;
+					var result = re.exec(exp);
+					if (result != null && result.length == 3) {
+						user.name = result[1];
+						user.roleName = result[2];
+					}
+				}
+			}
+			return user;
 		},
 		getQueryMap: function () {
 			if (!window._urlQueryMap) {
