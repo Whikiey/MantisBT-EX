@@ -223,11 +223,11 @@
 						bugids.push(this.value);
 					});
 					var comment = $("textarea[name=bugnote_text]").val();
-					try{
+					try {
 						MantisAjax.batch_add_monitor(bugids);
 						window.open("view_all_bug_page.php", "_self");
 					}
-					catch (e){
+					catch (e) {
 						console.log(e);
 					}
 					if (comment == "")
